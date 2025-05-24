@@ -1,28 +1,27 @@
 import streamlit as st
-import torch
-import pandas as pd
-from PIL import Image
-import tempfile
 import os
 from detect_custom import run_detection
+import pandas as pd
 
-st.title("🌓 Deteksi Hilal Otomatis")
-st.markdown("Upload gambar atau video untuk mendeteksi hilal menggunakan model YOLOv5.")
+st.set_page_config(page_title="Deteksi Hilal", layout="centered")
 
-uploaded_file = st.file_uploader("Unggah gambar atau video", type=["jpg", "jpeg", "png", "mp4"])
+st.title("🌙 Aplikasi Deteksi Hilal Menggunakan YOLOv5")
 
-if uploaded_file is not None:
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        temp_file.write(uploaded_file.read())
-        input_path = temp_file.name
+uploaded_file = st.file_uploader("Unggah Gambar atau Video", type=["jpg", "png", "jpeg", "mp4", "mov"])
 
-    st.info("🚀 Proses deteksi berjalan...")
-    output_image_path, csv_path, hasil_df = run_detection(input_path)
+if uploaded_file:
+    with open(os.path.join("input", uploaded_file.name), "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    st.success("File berhasil diunggah!")
 
-    if hasil_df is not None and not hasil_df.empty:
-        st.image(output_image_path, caption="Hasil Deteksi", use_column_width=True)
-        st.success("✅ Hilal terdeteksi.")
-        st.dataframe(hasil_df)
-        st.download_button("📥 Unduh CSV Deteksi", data=hasil_df.to_csv(index=False), file_name="hasil_deteksi.csv", mime="text/csv")
-    else:
-        st.warning("⚠️ Tidak ada hilal terdeteksi.")
+    result_img, result_csv = run_detection(source=os.path.join("input", uploaded_file.name))
+
+    if result_img:
+        st.image(result_img, caption="Hasil Deteksi", use_column_width=True)
+        st.download_button("📥 Unduh Gambar Deteksi", open(result_img, "rb"), file_name="hasil_deteksi.jpg")
+
+    if result_csv:
+        df = pd.read_csv(result_csv)
+        st.dataframe(df)
+        st.download_button("📥 Unduh CSV Deteksi", open(result_csv, "rb"), file_name="hasil_deteksi.csv")
