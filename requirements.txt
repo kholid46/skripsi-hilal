@@ -1,5 +1,10 @@
 streamlit
-torch
-pandas
-opencv-python-headless
+torch>=1.7.0
+opencv-python
 Pillow
+numpy
+matplotlib
+pyyaml
+tqdm
+seaborn
+ultralytics
